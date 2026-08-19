@@ -3,47 +3,77 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\LuckyTimeSession;
+use App\Models\Product;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $products = Product::with(['category', 'brand'])
+            ->filter($request->only(['category_id', 'brand_id', 'status']))
+            ->orderBy('id')
+            ->get();
+
+        $session = $this->getActiveLuckyTimeSession();
+
+        $products->each->applyLuckyTimeDiscount($session);
+
+        return response()->json([
+            'lucky_time' => $this->formatLuckyTimeResponse($session),
+            'data' => $products,
+        ]);
+    }
+
+    public function show(Product $product)
+    {
+        $product->load(['category', 'brand']);
+
+        $session = $this->getActiveLuckyTimeSession();
+        
+        $product->applyLuckyTimeDiscount($session);
+
+        return response()->json([
+            'lucky_time' => $this->formatLuckyTimeResponse($session),
+            'data' => $product,
+        ]);
+    }
+
+    public function search(Request $request)
+    {
+        // search method for products
+        $products = Product::query()
+            ->search($request->query('q', ''))
+            ->orderBy('id')
+            ->get();
+
+        return response()->json([
+            'data' => $products,
+        ]);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Helper to fetch the currently active flash sale session.
      */
-    public function store(Request $request)
+    private function getActiveLuckyTimeSession(): ?LuckyTimeSession
     {
-        //
+        return LuckyTimeSession::where('status', 'active')
+            ->where('start_time', '<=', now())
+            ->where('end_time', '>=', now())
+            ->first();
     }
 
     /**
-     * Display the specified resource.
+     * Helper to DRY up the JSON response structure for flash sales.
      */
-    public function show(string $id)
+    private function formatLuckyTimeResponse(?LuckyTimeSession $session): array
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return [
+            'active' => (bool) $session,
+            'discount_percentage' => $session ? (float) $session->discount_percentage : 0,
+            'start_time' => $session?->start_time,
+            'end_time' => $session?->end_time,
+        ];
     }
 }
