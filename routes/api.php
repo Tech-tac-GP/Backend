@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\LuckyTimeController;
+use App\Http\Controllers\Api\V1\AdminProductController;
+use App\Http\Middleware\EnsureAdmin;
 
 Route::prefix('v1')->group(function () {
 
@@ -51,5 +53,14 @@ Route::prefix('v1')->group(function () {
         Route::post('/lucky-time/participate', [LuckyTimeController::class, 'participate']);
     });
 
-   });
+    Route::prefix('admin')->middleware(['auth:sanctum', EnsureAdmin::class])->group(function () {
+    
+    Route::post('/products', [AdminProductController::class, 'store']);
+    Route::put('/products/{product}', [AdminProductController::class, 'update']);
+    Route::delete('/products/{product}', [AdminProductController::class, 'destroy']);
+    
+    Route::patch('/products/{product}/stock', [AdminProductController::class, 'updateStock']);
 
+    });
+
+   });
