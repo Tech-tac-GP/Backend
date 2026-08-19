@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\ReviewController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\LuckyTimeController;
 use App\Http\Controllers\Api\V1\AdminProductController;
+use App\Http\Controllers\Api\V1\AdminDashboardController;
 use App\Http\Middleware\EnsureAdmin;
 
 Route::prefix('v1')->group(function () {
@@ -55,12 +56,25 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('admin')->middleware(['auth:sanctum', EnsureAdmin::class])->group(function () {
     
+    // --- Product Management ---
     Route::post('/products', [AdminProductController::class, 'store']);
     Route::put('/products/{product}', [AdminProductController::class, 'update']);
     Route::delete('/products/{product}', [AdminProductController::class, 'destroy']);
-    
     Route::patch('/products/{product}/stock', [AdminProductController::class, 'updateStock']);
-
+    
+    // --- Dashboard & AI Analytics ---
+    Route::prefix('dashboard')->group(function () {
+        // Standard Stats
+        Route::get('/top-products', [AdminDashboardController::class, 'topProducts']);
+        Route::get('/stats', [AdminDashboardController::class, 'stats']);
+        
+        // AI Integration Endpoints
+        Route::get('/ai/cart-abandonment', [AdminDashboardController::class, 'predictCartAbandonment']);
+        Route::get('/ai/demand-forecast', [AdminDashboardController::class, 'forecastDemand']);
+        Route::get('/ai/customer-segments', [AdminDashboardController::class, 'segmentCustomers']);
+        Route::get('/ai/predict-purchases', [AdminDashboardController::class, 'predictPurchases']);
     });
+    
+});
 
    });
