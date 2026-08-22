@@ -61,16 +61,6 @@ class LuckyTimeController extends Controller
 
     protected function getCurrentSession(): ?LuckyTimeSession
     {
-        $session = LuckyTimeSession::activeNow()->first();
-
-        if ($session && $session->status === 'scheduled') {
-            $session->update(['status' => 'active']);
-        }
-
-        if ($session) {
-            $session->is_active = true;
-        }
-
-        return $session;
+        return LuckyTimeSession::activeNow()->first();
     }
 }
