@@ -51,6 +51,8 @@ class CheckoutController extends Controller
         }
 
 
+        $user->cartItems()->delete();
+        
         return response()->json([
             'status' => 'success',
             'message' => 'Checkout calculated successfully.',
