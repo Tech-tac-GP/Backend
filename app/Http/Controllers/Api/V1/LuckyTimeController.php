@@ -14,16 +14,25 @@ class LuckyTimeController extends Controller
     {
         $session = $this->getCurrentSession();
 
+        if(!$session){
         return response()->json([
             'status' => 'success',
             'data' => [
-                'active' => $session->is_active,
+                'active' => false,
+            ],
+        ], Response::HTTP_OK);
+        }
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'active' => true, 
                 'start_time' => $session->start_time,
                 'end_time' => $session->end_time,
                 'discount_percentage' => (float) $session->discount_percentage,
             ],
         ], Response::HTTP_OK);
     }
+    
 
     public function participate(Request $request)
     {
